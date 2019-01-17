@@ -21,7 +21,7 @@ SyntaxInformation[Deref]={"ArgumentsPattern"->{_}}
 SyntaxInformation[RefQ]={"ArgumentsPattern"->{_}}
 
 
-(* ::Section:: *)
+(* ::Section::Closed:: *)
 (*Implement*)
 
 
@@ -73,16 +73,17 @@ Unprotect[Set,SetDelayed];
 Do[
  With[{set=set},
   Quiet[set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]=. ,Unset::norep];
-  set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]:=
-   With[{
-    lhs1 = Block[{Deref},
-      Hold[lhs]//.{
-       Deref[NullRef] :> With[{e=(Message[Deref::null];Throw[$Failed,Deref])},e/;True],
-       Deref@HoldPattern@Ref[sym_Symbol] :> sym,
-       Deref[expr_] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
-      }]},
-    Replace[Hold[set[lhs1, rhs]], Hold[set[Hold[lhs2_], rhs2_]]:>set[lhs2, rhs2]]
-   ]//Catch[#,Deref]&
+  set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]:=Catch[
+    With[{
+     lhs1 = Internal`InheritedBlock[{Deref},
+       Unprotect[Deref];DownValues[Deref]={};
+       Hold[lhs]//.{
+        Deref[NullRef] :> With[{e=(Message[Deref::null];Throw[$Failed,Deref])},e/;True],
+        Deref@HoldPattern[Ref[sym_Symbol]] :> sym,
+        Deref[expr:Except[_Deref]] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
+       }]},
+     Replace[Hold[set[lhs1, rhs]], Hold[set[Hold[lhs2_], rhs2_]]:>set[lhs2, rhs2]]
+    ],Deref]
  ],{set,{Set,SetDelayed}}
 ]
 Protect[Set,SetDelayed];
