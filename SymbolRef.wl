@@ -65,6 +65,17 @@ Deref::null="NullRef refers to NOTHING!"
 Deref::noref="`1` is not a reference."
 
 
+SetAttributes[expandDerefLHS,HoldFirst]
+expandDerefLHS[lhs_]:=
+  Internal`InheritedBlock[{Deref},
+    Unprotect[Deref];DownValues[Deref]={};
+    Hold[lhs]//.{
+      Deref[NullRef] :> With[{e=(Message[Deref::null];Throw[$Failed,Deref])},e/;True],
+      Deref@HoldPattern[Ref[sym_Symbol]] :> sym,
+      Deref[expr:Except[_Deref]] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
+    }
+  ]
+
 checkRefInsideDeref[Deref[r_?iRefQ]]:=Deref[r]
 checkRefInsideDeref[Deref[expr_]]:=(Message[Deref::noref,expr];Throw[$Failed,Deref])
 
@@ -87,20 +98,22 @@ Deref[expr_]:=(Message[Deref::noref,expr];$Failed)
 
 Unprotect[Set,SetDelayed];
 Do[
- With[{set=set},
-  Quiet[set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]=. ,Unset::norep];
-  set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]:=Catch[
-    With[{
-     lhs1 = Internal`InheritedBlock[{Deref},
-       Unprotect[Deref];DownValues[Deref]={};
-       Hold[lhs]//.{
-        Deref[NullRef] :> With[{e=(Message[Deref::null];Throw[$Failed,Deref])},e/;True],
-        Deref@HoldPattern[Ref[sym_Symbol]] :> sym,
-        Deref[expr:Except[_Deref]] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
-       }]},
-     Replace[Hold[set[lhs1, rhs]], Hold[set[Hold[lhs2_], rhs2_]]:>set[lhs2, rhs2]]
-    ],Deref]
- ],{set,{Set,SetDelayed}}
+  With[{set=set},
+    Quiet[
+      set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]=. ,
+      Unset::norep
+    ];
+    set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]:=
+      Catch[
+        With[{lhs1 = expandDerefLHS[lhs]},
+          Replace[Hold[set[lhs1, rhs]],
+            Hold[set[Hold[lhs2_], rhs2_]]:>set[lhs2, rhs2]
+          ]
+        ],
+        Deref
+      ]
+  ],
+  {set,{Set,SetDelayed}}
 ]
 Protect[Set,SetDelayed];
 
