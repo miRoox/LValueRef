@@ -33,27 +33,11 @@ Deref::null="NullRef refers to NOTHING!"
 Deref::noref="`1` is not a reference."
 
 
-SetAttributes[ownValue,HoldFirst]
-ownValue[sym_Symbol,warpper_:Unevaluated]:=warpper[sym]/.OwnValues[sym]
-
-
-SetAttributes[embeddedUserSymbols,HoldFirst]
-embeddedUserSymbols[expr_]:=
- Select[Internal`EmbeddedSymbols[expr],
-  Function[sym,ContainsNone[Attributes[sym],{Locked,Protected}],HoldAll]
- ]/. {Hold[syms___]:>Hold[{syms}]}
-SetAttributes[symbolSandbox,HoldFirst]
-symbolSandbox[expr_]:=With[{syms=Unevaluated@@embeddedUserSymbols[expr]},
-  Internal`InheritedBlock[syms,expr]
- ]
-
-
 checkRefInsideDeref[Deref[r_?iRefQ]]:=Deref[r]
 checkRefInsideDeref[Deref[expr_]]:=(Message[Deref::noref,expr];Throw[$Failed,Deref])
 
 
-SetAttributes[RefQ,HoldFirst]
-RefQ[expr_]:=iRefQ[symbolSandbox[expr]]
+RefQ[expr_]:=iRefQ[expr]
 iRefQ[NullRef|_Ref]:=True
 iRefQ[_]:=False
 
