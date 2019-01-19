@@ -89,11 +89,15 @@ SetAttributes[Ref,HoldFirst]
 Ref[ref_Ref]:=ref
 Ref[NullRef]:=NullRef
 Ref[expr:Except[_Symbol|_Ref|NullRef]]:=(Message[Ref::nosym,expr];NullRef)
+Ref[]:=NullRef
+Ref[_,__]:=$Failed
 
 
 Deref[HoldPattern[Ref[obj_]]]:=obj
 Deref[NullRef]:=(Message[Deref::null];$Failed)
 Deref[expr_]:=(Message[Deref::noref,expr];$Failed)
+Deref[]:=$Failed
+Deref[_,__]:=$Failed
 
 
 Unprotect[Set,SetDelayed];
