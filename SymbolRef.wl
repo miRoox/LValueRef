@@ -105,10 +105,8 @@ Do[
     ];
     set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]:=
       Catch[
-        With[{lhs1 = expandDerefLHS[lhs]},
-          Replace[Hold[set[lhs1, rhs]],
-            Hold[set[Hold[lhs2_], rhs2_]]:>set[lhs2, rhs2]
-          ]
+        With[{lhs1 = Unevaluated@@expandDerefLHS[lhs]},
+          set[lhs1, rhs]
         ],
         Deref
       ]
