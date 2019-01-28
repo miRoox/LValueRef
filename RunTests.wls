@@ -5,7 +5,7 @@ Print["Running tests..."];
 
 getFailedTestsID[tr_TestReportObject]:=#["TestID"]& /@ Flatten[Values /@ Values@tr["TestsFailed"]]
 
-Get["SymbolRef`",Path->Directory[]]
+Get["LValueRef`",Path->Directory[]]
 
 
 With[{tr=TestReport[FileNameJoin[{Directory[],"Tests.wlt"}]]},

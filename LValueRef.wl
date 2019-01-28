@@ -29,10 +29,10 @@
 
 
 (* ::Title:: *)
-(*SymbolRef*)
+(*LValueRef*)
 
 
-BeginPackage["SymbolRef`"]
+BeginPackage["LValueRef`"]
 
 
 (* ::Section:: *)
@@ -42,10 +42,12 @@ BeginPackage["SymbolRef`"]
 Unprotect[Ref,Deref,NullRef]
 
 
-Ref::usage="Ref[sym] refers to sym."
+Ref::usage="Ref[lvalue] refers to lvalue."
 Deref::usage="Deref[ref] dereference."
 NullRef::usage="NullRef is a reference that refers to nothing."
 RefQ::usage="RefQ[expr] check if expr is a reference."
+ExpandDerefAsLValue::usage="ExpandDerefAsLValue[expr] expand dereference in expr as lvalue.
+ExpandDerefAsLValue[expr,wrapper] expand dereference in expr as lvalue, and the result is wrapped in the wrapper"
 
 
 SyntaxInformation[Ref]={"ArgumentsPattern"->{_}}
@@ -60,18 +62,19 @@ SyntaxInformation[RefQ]={"ArgumentsPattern"->{_}}
 Begin["`Private`"]
 
 
-Ref::nosym="`1` is not a symbol."
 Deref::null="NullRef refers to NOTHING!"
 Deref::noref="`1` is not a reference."
 
 
-SetAttributes[expandDerefLHS,HoldFirst]
-expandDerefLHS[lhs_]:=
+SetAttributes[iExpandDerefAsLValue,HoldFirst]
+SetAttributes[ExpandDerefAsLValue,HoldFirst]
+ExpandDerefAsLValue[expr_,wrapper_:Unevaluated]:=wrapper@@iExpandDerefAsLValue[expr]
+iExpandDerefAsLValue[lexpr_]:=
   Internal`InheritedBlock[{Deref},
     Unprotect[Deref];DownValues[Deref]={};
-    Hold[lhs]//.{
+    Hold[lexpr]//.{
       Deref[NullRef] :> With[{e=(Message[Deref::null];Throw[$Failed,Deref])},e/;True],
-      Deref@HoldPattern[Ref[sym_Symbol]] :> sym,
+      Deref@HoldPattern[Ref[sym_]] :> sym,
       Deref[expr:Except[_Deref]] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
     }
   ]
@@ -88,7 +91,6 @@ iRefQ[_]:=False
 SetAttributes[Ref,HoldFirst]
 Ref[ref_Ref]:=ref
 Ref[NullRef]:=NullRef
-Ref[expr:Except[_Symbol|_Ref|NullRef]]:=(Message[Ref::nosym,expr];NullRef)
 Ref[]:=NullRef
 Ref[_,__]:=$Failed
 
@@ -109,7 +111,7 @@ Do[
     ];
     set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]:=
       Catch[
-        With[{lhs1 = Unevaluated@@expandDerefLHS[lhs]},
+        With[{lhs1 = Unevaluated@@iExpandDerefAsLValue[lhs]},
           set[lhs1, rhs]
         ],
         Deref
