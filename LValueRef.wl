@@ -70,19 +70,23 @@ Deref::noref="`1` is not a reference."
 
 SetAttributes[iExpandDerefAsLValue,HoldFirst]
 SetAttributes[ExpandDerefAsLValue,HoldFirst]
-ExpandDerefAsLValue[expr_,wrapper_:Unevaluated]:=wrapper@@iExpandDerefAsLValue[expr]
+ExpandDerefAsLValue[expr_,wrapper_:Unevaluated]:=
+  CatchFailureAsMessage[
+    Deref,
+    wrapper@@iExpandDerefAsLValue[expr]
+  ]
 iExpandDerefAsLValue[lexpr_]:=
   Internal`InheritedBlock[{Deref},
     Unprotect[Deref];DownValues[Deref]={};
     Hold[lexpr]//.{
-      Deref[NullRef] :> With[{e=(Message[Deref::null];Throw[$Failed,Deref])},e/;True],
+      Deref[NullRef] :> With[{e=ThrowFailure[Deref::null]},e/;True],
       Deref@HoldPattern[Ref[sym_]] :> sym,
       Deref[expr:Except[_Deref]] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
     }
   ]
 
 checkRefInsideDeref[Deref[r_?iRefQ]]:=Deref[r]
-checkRefInsideDeref[Deref[expr_]]:=(Message[Deref::noref,expr];Throw[$Failed,Deref])
+checkRefInsideDeref[Deref[expr_]]:=ThrowFailure[Deref::noref,expr]
 
 
 RefQ[expr_]:=iRefQ[expr]
@@ -112,11 +116,11 @@ Do[
       Unset::norep
     ];
     set[lhs_, rhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]:=
-      Catch[
+      CatchFailureAsMessage[
+        Deref,
         With[{lhs1 = Unevaluated@@iExpandDerefAsLValue[lhs]},
           set[lhs1, rhs]
-        ],
-        Deref
+        ]
       ]
   ],
   {set,{Set,SetDelayed}}
