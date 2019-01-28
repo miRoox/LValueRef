@@ -54,3 +54,16 @@ Deref@Deref@c=2;
 a
 (*Out[*]= 2*)
 ```
+
+### Possible alternatives
+
+For simple cases:
+
+```mathematica
+a=1;
+ra:=Unevaluated@@Hold[a]
+f[r_]:=r=2
+f[ra];
+a
+(*Out[*]= 2*)
+```
