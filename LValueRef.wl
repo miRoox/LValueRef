@@ -32,7 +32,7 @@
 (*LValueRef*)
 
 
-BeginPackage["LValueRef`"]
+BeginPackage["LValueRef`",{"GeneralUtilities`"}]
 
 
 (* ::Section:: *)
@@ -42,17 +42,19 @@ BeginPackage["LValueRef`"]
 Unprotect[Ref,Deref,NullRef]
 
 
-Ref::usage="Ref[lvalue] refers to lvalue."
-Deref::usage="Deref[ref] dereference."
-NullRef::usage="NullRef is a reference that refers to nothing."
-RefQ::usage="RefQ[expr] check if expr is a reference."
-ExpandDerefAsLValue::usage="ExpandDerefAsLValue[expr] expand dereference in expr as lvalue.
-ExpandDerefAsLValue[expr,wrapper] expand dereference in expr as lvalue, and the result is wrapped in the wrapper"
+SetUsage[Ref,"Ref[lvalue$] refers to lvalue$."]
+SetUsage[Deref,"Deref[ref$] dereference."]
+SetUsage[NullRef,"NullRef is a reference that refers to nothing."]
+SetUsage[RefQ,"RefQ[expr$] check if expr$ is a reference."]
+SetUsage[ExpandDerefAsLValue,
+"ExpandDerefAsLValue[expr$] expands dereference in the expr$ as lvalue.",
+"ExpandDerefAsLValue[expr$,wrapper$] expands dereference in the expr$ as lvalue, and the result is wrapped in the wrapper$."]
 
 
 SyntaxInformation[Ref]={"ArgumentsPattern"->{_}}
 SyntaxInformation[Deref]={"ArgumentsPattern"->{_}}
 SyntaxInformation[RefQ]={"ArgumentsPattern"->{_}}
+SyntaxInformation[ExpandDerefAsLValue]={"ArgumentsPattern"->{_,_.}}
 
 
 (* ::Section::Closed:: *)
