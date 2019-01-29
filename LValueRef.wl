@@ -39,12 +39,11 @@ BeginPackage["LValueRef`",{"GeneralUtilities`"}]
 (*Interface*)
 
 
-Unprotect[Ref,Deref,NullRef]
+Unprotect[Ref,Deref]
 
 
 SetUsage[Ref,"Ref[lvalue$] refers to lvalue$."]
 SetUsage[Deref,"Deref[ref$] dereference."]
-SetUsage[NullRef,"NullRef is a reference that refers to nothing."]
 SetUsage[RefQ,"RefQ[expr$] check if expr$ is a reference."]
 SetUsage[ExpandDerefAsLValue,
 "ExpandDerefAsLValue[expr$] expands dereference in the expr$ as lvalue.",
@@ -64,7 +63,6 @@ SyntaxInformation[ExpandDerefAsLValue]={"ArgumentsPattern"->{_,_.}}
 Begin["`Private`"]
 
 
-Deref::null="NullRef refers to NOTHING!"
 Deref::noref="`1` is not a reference."
 
 
@@ -79,7 +77,6 @@ iExpandDerefAsLValue[lexpr_]:=
   Internal`InheritedBlock[{Deref},
     Unprotect[Deref];DownValues[Deref]={};
     Hold[lexpr]//.{
-      Deref[NullRef] :> With[{e=ThrowFailure[Deref::null]},e/;True],
       Deref@HoldPattern[Ref[sym_]] :> sym,
       Deref[expr:Except[_Deref]] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
     }
@@ -90,19 +87,17 @@ checkRefInsideDeref[Deref[expr_]]:=ThrowFailure[Deref::noref,expr]
 
 
 RefQ[expr_]:=iRefQ[expr]
-iRefQ[NullRef|_Ref]:=True
+iRefQ[_Ref]:=True
 iRefQ[_]:=False
 
 
 SetAttributes[Ref,HoldFirst]
 Ref[ref_Ref]:=ref
-Ref[NullRef]:=NullRef
-Ref[]:=NullRef
+Ref[]:=$Failed
 Ref[_,__]:=$Failed
 
 
 Deref[HoldPattern[Ref[obj_]]]:=obj
-Deref[NullRef]:=(Message[Deref::null];$Failed)
 Deref[expr_]:=(Message[Deref::noref,expr];$Failed)
 Deref[]:=$Failed
 Deref[_,__]:=$Failed
@@ -166,7 +161,7 @@ Protect[Unset]
 End[]
 
 
-Protect[Ref,Deref,NullRef]
+Protect[Ref,Deref]
 
 
 EndPackage[]

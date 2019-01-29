@@ -4,7 +4,6 @@ Pointer semantics simulation in Wolfram Language.
 
 * `Ref[lvalue]` refers to `lvalue`.
 * `Deref[ref]` dereference.
-* `NullRef` is a reference that refers to nothing.
 * `RefQ[expr]` check if `expr` is a reference.
 * `ExpandDerefAsLValue[expr]` expands dereference in the `expr` as lvalue.
 
