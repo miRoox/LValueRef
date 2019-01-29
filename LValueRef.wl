@@ -77,18 +77,17 @@ iExpandDerefAsLValue[lexpr_]:=
   Internal`InheritedBlock[{Deref},
     Unprotect[Deref];DownValues[Deref]={};
     Hold[lexpr]//.{
-      Deref@HoldPattern[Ref[sym_]] :> sym,
+      Deref@HoldPattern[Ref[lvalue_]] :> lvalue,
       Deref[expr:Except[_Deref]] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
     }
   ]
 
-checkRefInsideDeref[Deref[r_?iRefQ]]:=Deref[r]
+checkRefInsideDeref[Deref[r_?RefQ]]:=Deref[r]
 checkRefInsideDeref[Deref[expr_]]:=ThrowFailure[Deref::noref,expr]
 
 
-RefQ[expr_]:=iRefQ[expr]
-iRefQ[_Ref]:=True
-iRefQ[_]:=False
+RefQ[_Ref]:=True
+RefQ[_]:=False
 
 
 SetAttributes[Ref,HoldFirst]
