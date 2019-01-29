@@ -127,6 +127,37 @@ Do[
 ]
 Protect[Set,SetDelayed];
 
+Do[
+  With[{clr=clr},
+    Quiet[
+      Deref/:clr[head___,lval_Deref,tail___]=. ,
+      TagUnset::norep
+    ];
+    Deref/:clr[head___,lval_Deref,tail___]:=
+      CatchFailureAsMessage[
+        Deref,
+        With[{lval1 = Unevaluated@@iExpandDerefAsLValue[lval]},
+          clr[head, lval1, tail]
+        ]
+      ]
+  ],
+  {clr,{Clear,ClearAttributes,ClearAll,Remove}}
+]
+
+Unprotect[Unset]
+Quiet[
+  Unset[lhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]=. ,
+  Unset::norep
+];
+Unset[lhs_]/;MemberQ[Unevaluated[lhs],_Deref,{0,Infinity}]:=
+  CatchFailureAsMessage[
+    Deref,
+    With[{lhs1 = Unevaluated@@iExpandDerefAsLValue[lhs]},
+      Unset[lhs1]
+    ]
+  ]
+Protect[Unset]
+
 
 (* ::Section::Closed:: *)
 (*End*)
