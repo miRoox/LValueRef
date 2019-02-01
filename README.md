@@ -45,6 +45,16 @@ a
 (*Out[*]= {1,4,3}*)
 ```
 
+Not only symbols can be referenced:
+
+```mathematica
+a={1,2,3};
+b=Ref[a[[2]]];
+Deref@b=4;
+a
+(*Out[*]= {1,4,3}*)
+```
+
 Multiple references:
 
 ```mathematica
@@ -53,6 +63,18 @@ b=Ref[a];
 c=Ref[b];
 Deref@Deref@c=2;
 a
+(*Out[*]= 2*)
+```
+
+Implicit reference
+(`MakeRef` is similar to `new` in Java):
+
+```mathematica
+a = MakeRef[1];
+Deref[a]
+(*Out[*]= 1*)
+Deref[a] = 2;
+Deref[a]
 (*Out[*]= 2*)
 ```
 
