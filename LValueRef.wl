@@ -45,6 +45,7 @@ Unprotect[Ref,Deref]
 SetUsage[Ref,"Ref[lvalue$] refers to lvalue$."]
 SetUsage[Deref,"Deref[ref$] dereference."]
 SetUsage[RefQ,"RefQ[expr$] check if expr$ is a reference."]
+SetUsage[MakeRef,"MakeRef[value$] create a reference with the value$."]
 SetUsage[ExpandDerefAsLValue,
 "ExpandDerefAsLValue[expr$] expands dereference in the expr$ as lvalue.",
 "ExpandDerefAsLValue[expr$,wrapper$] expands dereference in the expr$ as lvalue, and the result is wrapped in the wrapper$."]
@@ -77,7 +78,7 @@ iExpandDerefAsLValue[lexpr_]:=
   Internal`InheritedBlock[{Deref},
     Unprotect[Deref];DownValues[Deref]={};
     Hold[lexpr]//.{
-      Deref@HoldPattern[Ref[lvalue_]] :> lvalue,
+      Deref@HoldPattern[Ref[lvalue_,Anonymous|PatternSequence[]]] :> lvalue,
       Deref[expr:Except[_Deref]] :> With[{e=checkRefInsideDeref[Deref[expr]]},e/;True]
     }
   ]
@@ -91,15 +92,25 @@ RefQ[_]:=False
 
 
 SetAttributes[Ref,HoldFirst]
+Format[Ref[lvalue_,Anonymous]]:=Interpretation[
+  Ref[IconizedObject[lvalue,"Anonymous Object"]],
+  Ref[lvalue,Anonymous]
+]
+Ref[Ref[lvalue_,_|PatternSequence[]],Anonymous]:=Ref[lvalue,Anonymous]
+Ref[Ref[lvalue_,_|PatternSequence[]],Full]:=Ref[lvalue]
+Ref[expr_,Automatic|Inherited|Full]:=Ref[expr]
 Ref[ref_Ref]:=ref
 Ref[]:=$Failed
-Ref[_,__]:=$Failed
+Ref[_,Except[Anonymous],___]:=$Failed
 
 
-Deref[HoldPattern[Ref[obj_]]]:=obj
+Deref[HoldPattern[Ref[obj_,_|PatternSequence[]]]]:=obj
 Deref[expr_]:=(Message[Deref::noref,expr];$Failed)
 Deref[]:=$Failed
 Deref[_,__]:=$Failed
+
+
+MakeRef[value_]:=Module[{obj=value},Ref[obj,Anonymous]]
 
 
 Unprotect[Set,SetDelayed];

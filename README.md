@@ -5,6 +5,7 @@ Pointer semantics simulation in Wolfram Language.
 * `Ref[lvalue]` refers to `lvalue`.
 * `Deref[ref]` dereference.
 * `RefQ[expr]` check if `expr` is a reference.
+* `MakeRef[value]` create a reference with the `value`.
 * `ExpandDerefAsLValue[expr]` expands dereference in the `expr` as lvalue.
 
 ### Usage
