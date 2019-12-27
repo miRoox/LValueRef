@@ -1,5 +1,7 @@
 # ``LValueRef` ``
 
+[![GitHub Actions Status](https://github.com/miRoox/LValueRef/workflows/Test/badge.svg)](https://github.com/miRoox/LValueRef/actions)
+
 Pointer semantics simulation in Wolfram Language.
 
 * `Ref[lvalue]` refers to `lvalue`.
