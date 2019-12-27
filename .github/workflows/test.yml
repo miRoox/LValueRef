@@ -5,7 +5,7 @@ on:
       - README.md
       - LICENSE
 jobs:
-  run_wolfram:
+  test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
